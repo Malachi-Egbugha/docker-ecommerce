@@ -1,0 +1,55 @@
+version: '3.4'
+
+services:
+  #Mongodb services
+  mongo_db:
+    container_name: mongo
+    image: mongo:latest
+    restart: always
+    ports: ["2717:27017"]
+    volumes: 
+      - mongo_db:/data/db
+      #product services
+  productservice:
+    container_name: productservice
+    restart: always
+    build: ./product-service
+    ports:
+      - 7073:7072
+    volumes: ["./product-service:/usr/src/app"]
+    depends_on:
+      - mongo_db
+    links:
+      - rabbitmq
+  #order services
+  orderservice:
+    container_name: orderservice
+    restart: always
+    build: ./order-service
+    ports:
+      - 9091:9090
+    volumes: ["./order-service:/usr/src/app"]
+    depends_on:
+      - mongo_db
+    links:
+      - rabbitmq
+  #authentication services
+  authservice:
+    container_name: authservice
+    restart: always
+    build: ./auth-service
+    ports:
+      - 7071:7070
+    volumes: ["./auth-service:/usr/src/app"]
+    depends_on:
+      - mongo_db
+    links:
+      - rabbitmq
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:3-management
+    ports: ["15672:15672","5671:5672"]
+
+volumes:
+  mongo_db:
+  
